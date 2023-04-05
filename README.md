@@ -1,3 +1,4 @@
 # Atividade Ajax Fipe
-Repositório de Exemplo para estudo de tecnicas de Ajax
-# Atividade-ajax-fipe
+Equipe Pallet
+
+Sistemas de informação - Unime, Lauro de Freitas - 2023.1
