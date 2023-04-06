@@ -25,7 +25,7 @@ var endpointDados = ""
 
 selecionarTipo()
 // A função recebe um argumento "novoTipo", que será usado para construir o endpoint para a requisição de API
-function getMarcasPorTipo(novoTipo) {
+async function getMarcasPorTipo(novoTipo) {
 
     if (ultimoTipo != novoTipo) {
 
@@ -38,25 +38,21 @@ function getMarcasPorTipo(novoTipo) {
         selectMarcasVeiculos.add(opcao)
 
         endpointMarcas = baseUrl + novoTipo + "/brands/"
+        let data = await fetchEndpoint(endpointMarcas)
 
-        fetch(endpointMarcas)
-            .then((response) => response.json())
-            .then((data) => {
-                data.map((marca) => {
-                    var opcao = document.createElement("option")
-                    opcao.text = marca.name
-                    opcao.value = marca.code
-                    selectMarcasVeiculos.add(opcao)
-                })
-                selectMarcasVeiculos.removeAttribute("disabled")
-                ultimoTipo = novoTipo
-            })
+        data.map((marca) => {
+            var opcao = document.createElement("option")
+            opcao.text = marca.name
+            opcao.value = marca.code
+            selectMarcasVeiculos.add(opcao)
+        })
+        selectMarcasVeiculos.removeAttribute("disabled")
+        ultimoTipo = novoTipo
+
     }
 }
-
-
 // Função para obter o modelo do veículo com base na marca selecionada
-function getModeloPorMarca() {
+async function getModeloPorMarca() {
 
     let novaMarca = selectMarcasVeiculos.value
 
@@ -74,24 +70,20 @@ function getModeloPorMarca() {
         selectModelosVeiculos.add(opcao)
 
         endpointModelo = endpointMarcas + novaMarca + "/models/"
-
-        fetch(endpointModelo)
-            .then((response) => response.json())
-            .then((data) => {
-                data.map((modelos) => {
-                    var opcao = document.createElement("option")
-                    opcao.text = modelos.name
-                    opcao.value = modelos.code
-                    selectModelosVeiculos.add(opcao)
-                })
-                selectModelosVeiculos.removeAttribute("disabled")
-                ultimaMarca = novaMarca
-            })
+        let data = await fetchEndpoint(endpointModelo)
+        data.map((modelos) => {
+            var opcao = document.createElement("option")
+            opcao.text = modelos.name
+            opcao.value = modelos.code
+            selectModelosVeiculos.add(opcao)
+        })
+        selectModelosVeiculos.removeAttribute("disabled")
+        ultimaMarca = novaMarca
     }
 }
 
 // Função para obter o ano do veículo com base no modelo selecionado
-function getAnoPorModelo() {
+async function getAnoPorModelo() {
 
     let novoModelo = selectModelosVeiculos.value
 
@@ -106,37 +98,33 @@ function getAnoPorModelo() {
         selectAnoVeiculos.add(opcao)
 
         endpointAnos = endpointModelo + novoModelo + "/years/"
+        let data = await fetchEndpoint(endpointAnos)
 
-        fetch(endpointAnos)
-            .then((response) => response.json())
-            .then((data) => {
-                data.map((anos) => {
-                    var opcao = document.createElement("option")
-                    opcao.text = anos.name
-                    opcao.value = anos.code
-                    selectAnoVeiculos.add(opcao)
-                })
-                selectAnoVeiculos.removeAttribute("disabled")
-                ultimoModelo = novoModelo
-            })
+        data.map((anos) => {
+            var opcao = document.createElement("option")
+            opcao.text = anos.name
+            opcao.value = anos.code
+            selectAnoVeiculos.add(opcao)
+        })
+        selectAnoVeiculos.removeAttribute("disabled")
+        ultimoModelo = novoModelo
     }
 }
 
 //faz um loop por todos os tipos, ativa o selecionado e desativa os outros
-function selecionarTipo(){
-for (let i = 0; i < tiposVeiculos.length; i++) {
-    tiposVeiculos[i].addEventListener("click", function () {
-        var veiculoAtual = document.getElementsByClassName("active")
+function selecionarTipo() {
+    for (let i = 0; i < tiposVeiculos.length; i++) {
+        tiposVeiculos[i].addEventListener("click", function () {
+            var veiculoAtual = document.getElementsByClassName("active")
 
-        if (veiculoAtual.length > 0) {
-            veiculoAtual[0].className = veiculoAtual[0].className.replace(" active", "");
-        }
+            if (veiculoAtual.length > 0) {
+                veiculoAtual[0].className = veiculoAtual[0].className.replace(" active", "");
+            }
+            this.className += " active"
+            getMarcasPorTipo(veiculoAtual[0].getAttribute("data-type"))
+        })
+    }
 
-        this.className += " active"
-        getMarcasPorTipo(veiculoAtual[0].id)
-
-    })
-}
 }
 
 //Habilita botao de buscar
@@ -147,22 +135,17 @@ function habilitaBuscar() {
 }
 
 //Preenche o modal com os dados do veiculo e remove o hide
-function revelaModal() {
+async function revelaModal() {
     var novoAno = selectAnoVeiculos.value
 
     endpointDados = endpointAnos + novoAno + "/"
-    fetch(endpointDados)
-        .then((response) => response.json())
-        .then((data) => { // Por algum motivo essa resposta da API, quando transferido para outra varivel, e utilizado a função .map, é retornado um erro. 
-            mesReferencia[0].innerHTML = data.referenceMonth
-            codigoFipe[0].innerHTML = data.codeFipe
-            marcaVeiculo[0].innerHTML = data.brand
-            anoVeiculo[0].innerHTML = data.modelYear
-            precoMedio[0].innerHTML = data.price
-            modal.classList.remove("hide_modal")
-        }
-
-        )
+    let data = await fetchEndpoint(endpointDados)
+    mesReferencia[0].innerHTML = data.referenceMonth
+    codigoFipe[0].innerHTML = data.codeFipe
+    marcaVeiculo[0].innerHTML = data.brand
+    anoVeiculo[0].innerHTML = data.modelYear
+    precoMedio[0].innerHTML = data.price
+    modal.classList.remove("hide_modal")
 }
 
 function escondeModal() {
@@ -180,4 +163,10 @@ function resetCampos() {
     endpointDados = ""
     btnBuscar.classList.add("hide")
     btnBuscar.classList.remove("search_button_show")
+}
+//Realiza a requisicao na API
+async function fetchEndpoint(endpoint) {
+    const resposta = await fetch(endpoint);
+    const Dadosjson = await resposta.json();
+    return Dadosjson
 }
